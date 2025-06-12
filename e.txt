@@ -1,0 +1,150 @@
+import json
+import os
+
+class StudentGradeSystem:
+    def __init__(self, data_file="grades.json"):
+        self.data_file = data_file
+        self.students = []
+        self.load_data()
+
+    def load_data(self):
+        """从文件加载学生成绩数据"""
+        if os.path.exists(self.data_file):
+            try:
+                with open(self.data_file, 'r', encoding='utf-8') as file:
+                    self.students = json.load(file)
+            except Exception as e:
+                print(f"加载数据失败: {e}")
+                self.students = []
+        else:
+            self.students = []
+
+    def save_data(self):
+        """将学生成绩数据保存到文件"""
+        try:
+            with open(self.data_file, 'w', encoding='utf-8') as file:
+                json.dump(self.students, file, ensure_ascii=False, indent=4)
+        except Exception as e:
+            print(f"保存数据失败: {e}")
+
+    def add_grade(self):
+        """添加学生成绩"""
+        print("\n===== 记录学生成绩 =====")
+        name = input("请输入学生姓名：").strip()
+        student_id = input("请输入学生学号：").strip()
+        
+        # 检查学号是否重复
+        if any(student['student_id'] == student_id for student in self.students):
+            print("错误：该学号已存在！")
+            return
+
+        course = input("请输入课程名称：").strip()
+        
+        try:
+            score = float(input("请输入成绩（0-100）："))
+            if not (0 <= score <= 100):
+                print("错误：成绩必须在0-100之间！")
+                return
+        except ValueError:
+            print("错误：请输入有效的数字！")
+            return
+
+        # 添加学生成绩记录
+        self.students.append({
+            'name': name,
+            'student_id': student_id,
+            'course': course,
+            'score': score
+        })
+        self.save_data()
+        print("成绩已成功记录！")
+
+    def query_grades(self):
+        """查询学生成绩"""
+        print("\n===== 查询学生成绩 =====")
+        print("请选择查询方式：")
+        print("1. 按学生姓名查询")
+        print("2. 按学生学号查询")
+        print("3. 按课程名称查询")
+        
+        try:
+            choice = int(input("请输入选项序号："))
+        except ValueError:
+            print("错误：请输入有效的选项序号！")
+            return
+
+        if choice == 1:
+            keyword = input("请输入学生姓名：").strip()
+            results = [s for s in self.students if s['name'] == keyword]
+        elif choice == 2:
+            keyword = input("请输入学生学号：").strip()
+            results = [s for s in self.students if s['student_id'] == keyword]
+        elif choice == 3:
+            keyword = input("请输入课程名称：").strip()
+            results = [s for s in self.students if s['course'] == keyword]
+        else:
+            print("错误：无效的选项序号！")
+            return
+
+        if not results:
+            print("未找到相关记录！")
+        else:
+            for result in results:
+                print(f"姓名：{result['name']}, 学号：{result['student_id']}, 课程：{result['course']}, 成绩：{result['score']:.1f}")
+
+    def statistics(self):
+        """统计课程成绩"""
+        print("\n===== 统计课程成绩 =====")
+        course = input("请输入课程名称：").strip()
+        
+        course_scores = [s['score'] for s in self.students if s['course'] == course]
+        
+        if not course_scores:
+            print("未找到该课程的成绩记录！")
+            return
+
+        avg_score = sum(course_scores) / len(course_scores)
+        max_score = max(course_scores)
+        min_score = min(course_scores)
+
+        print(f"课程：{course}")
+        print(f"平均分：{avg_score:.2f}")
+        print(f"最高分：{max_score:.1f}")
+        print(f"最低分：{min_score:.1f}")
+
+    def display_menu(self):
+        """显示主菜单"""
+        print("\n=================================")
+        print("欢迎使用学生成绩管理系统")
+        print("=================================")
+        print("请选择操作：")
+        print("1. 记录学生成绩")
+        print("2. 查询学生成绩")
+        print("3. 统计课程成绩")
+        print("4. 退出系统")
+
+    def run(self):
+        """运行系统"""
+        while True:
+            self.display_menu()
+            try:
+                choice = input("请输入选项序号：").strip()
+                
+                if choice == '1':
+                    self.add_grade()
+                elif choice == '2':
+                    self.query_grades()
+                elif choice == '3':
+                    self.statistics()
+                elif choice == '4':
+                    print("感谢使用学生成绩管理系统，再见！")
+                    break
+                else:
+                    print("错误：请输入1-4之间的选项序号！")
+            except Exception as e:
+                print(f"发生错误：{e}")
+
+if __name__ == "__main__":
+    system = StudentGradeSystem()
+    system.run()    
+#添加功能：统计课程成绩
